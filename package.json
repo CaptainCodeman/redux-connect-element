@@ -1,6 +1,6 @@
 {
   "name": "@captaincodeman/redux-connect-element",
-  "version": "1.0.0-beta.0",
+  "version": "1.0.0",
   "description": "Redux HTMLElement Connector",
   "main": "connect.cjs.js",
   "browser": "connect.min.js",
@@ -20,11 +20,12 @@
     "redux": "^4.0.0"
   },
   "devDependencies": {
-    "rollup": "^0.65.0",
-    "rollup-plugin-node-resolve": "^3.3.0",
-    "rollup-plugin-terser": "^1.0.1",
-    "rollup-plugin-typescript": "^0.8.1",
-    "typescript": "^3.0.1"
+    "rollup": "^1.1.2",
+    "rollup-plugin-node-resolve": "^4.0.0",
+    "rollup-plugin-terser": "^4.0.4",
+    "rollup-plugin-typescript": "^1.0.0",
+    "tslib": "^1.9.3",
+    "typescript": "^3.3.3"
   },
   "dependencies": {
     "redux": "^4.0.0"

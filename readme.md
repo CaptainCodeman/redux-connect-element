@@ -74,3 +74,6 @@ import { MyElementConnected as MyElement } from './my-element-connected'
 
 customElements.define(MyElement.is, MyElement)
 ```
+
+Of course if you prefer, you can include the `connect` mixin with the mapping functions
+directly in the element  (having the split is entirely optional).
