@@ -12,7 +12,7 @@
     "build:es": "tsc --module es2015 --declaration",
     "build:js": "rollup -c",
     "dev": "rollup -c -w",
-    "mypublish": "npm run build && cp readme.md package.json dist && npm publish dist --tag beta --access=public"
+    "mypublish": "npm run build && cp readme.md package.json dist && npm publish dist --tag latest --access=public"
   },
   "author": "simon@captaincodeman.com",
   "license": "ISC",
