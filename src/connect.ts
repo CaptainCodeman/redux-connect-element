@@ -26,6 +26,11 @@ export function connect<T extends Constructor<Connectable>>(
         private unsubscribe: Unsubscribe;
         private dispatchMap: any
 
+        constructor(...args: any[]) {
+            super(args)
+            this.onReduxStateChange_ = this.onReduxStateChange_.bind(this)
+        }
+
         connectedCallback() {
             if (super.connectedCallback) {
                 super.connectedCallback()
@@ -46,9 +51,8 @@ export function connect<T extends Constructor<Connectable>>(
             }
 
             if (this._mapStateToProps) {
-                const update = () => Object.assign(this, this.onStateChanged(store.getState()))
-                this.unsubscribe = store.subscribe(update)
-                update()
+                this.unsubscribe = store.subscribe(this.onReduxStateChange_)
+                this.onReduxStateChange_()
             }
         }
 
@@ -69,7 +73,8 @@ export function connect<T extends Constructor<Connectable>>(
             }
         }
 
-        onStateChanged(state: any) {
+        private onReduxStateChange_() {
+            const state = store.getState()
             Object.assign(this, this._mapStateToProps(state))
         }
     }
