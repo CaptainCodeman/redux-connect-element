@@ -16,6 +16,10 @@
   },
   "author": "simon@captaincodeman.com",
   "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/captaincodeman/redux-connect-element"
+  },
   "peerDependencies": {
     "redux": "^4.0.0"
   },
