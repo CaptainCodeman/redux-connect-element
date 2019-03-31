@@ -1,7 +1,9 @@
 # redux-connect-element
 
 Connect Redux to vanilla HTMLElement (or LitElement) instances, based on this
-[gist by Kevin Schaaf](https://gist.github.com/kevinpschaaf/995c9d1fd0f58fe021b174c4238b38c3)
+[gist by Kevin Schaaf](https://gist.github.com/kevinpschaaf/995c9d1fd0f58fe021b174c4238b38c3).
+
+Typescript friendly.
 
 ## Installation
 
@@ -40,27 +42,30 @@ This is the class you would import into tests - you can feed it whatever data yo
 want with no need to setup external dependencies (such as Redux).
 
 The connection to Redux can now be defined separately by subclassing the element
-and providing mapping functions. These map the Redux state to the element properties
-(`_mapStateToProps`) and the dispatch method to the events (`_mapDispatchToEvents`).
+and providing mapping functions. These map the Redux State to the element properties
+(`_mapStateToProps`) and the events to Redux Actions (`_mapEventsToActions`).
+
+The `_mapStateToProps` method can map properties directly or you can make use of the
+[Reselect](https://github.com/reduxjs/reselect) library to memoize more complex
+projections.
 
 ```ts
-import { Dispatch } from 'redux'
 import { connect } from '@captaincodeman/redux-connect-element'
 import { store, State } from './store'
 import { MyElement } from './my-element'
 
 export class MyElementConnected extends connect(store, MyElement) {
     _mapStateToProps = (state: State) => ({
-        name: state.name.name
+        name: state.name // or NameSelector(state)
     })
 
-    _mapDispatchToEvents = (dispatch: Dispatch) => ({
-        'name-changed': (e: CustomEvent) => dispatch({
+    _mapEventsToActions = () => ({
+        'name-changed': (e: NameChangedEvent) => {
             type: 'CHANGE_NAME', 
             payload: { 
-                name: e.detail
+                name: e.detail.Name
             }
-        }) 
+        }
     })
 }
 ```
@@ -77,3 +82,31 @@ customElements.define(MyElement.is, MyElement)
 
 Of course if you prefer, you can include the `connect` mixin with the mapping functions
 directly in the element  (having the split is entirely optional).
+
+NOTE: `_mapEventsToActions` superceeds `_mapDispatchToEvents` which maps events _and
+dispatches_ the actions. The example above could be written as shown below but using
+the `_mapEventsToActions` is simpler as it removes the responsibility of dispatching
+the action to the store and the need to import the `Dispatch` method from Redux (if
+using Typescript). `_mapDispatchToEvents` may be removed in future.
+
+```ts
+import { Dispatch } from 'redux'
+import { connect } from '@captaincodeman/redux-connect-element'
+import { store, State } from './store'
+import { MyElement } from './my-element'
+
+export class MyElementConnected extends connect(store, MyElement) {
+    _mapStateToProps = (state: State) => ({
+        name: state.name // or NameSelector(state)
+    })
+
+    _mapDispatchToEvents = (dispatch: Dispatch) => ({
+        'name-changed': (e: NameChangedEvent) => dispatch({
+            type: 'CHANGE_NAME', 
+            payload: { 
+                name: e.detail.name
+            }
+        })
+    })
+}
+```
