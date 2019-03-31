@@ -1,19 +1,23 @@
-import { Unsubscribe, Store, Dispatch } from 'redux';
+import { Unsubscribe, Store, Dispatch, Action } from 'redux';
 
-export type MapStateToProps = (state: any) => {
-    [key: string]: any
-}
+export type MapStateToProps = (state: any) => { [key: string]: any }
 
-export type MapDispatchToEvents = (dispatch: Dispatch) => {
-    [key: string]: (e: Event) => void
-}
+export type DispatchMap = { [key: string]: (event: Event) => void }
+export type MapDispatchToEvents = (dispatch: Dispatch) => DispatchMap
+
+export type EventMap = { [key: string]: (event: Event) => Action }
+export type MapEventsToActions = () => EventMap
 
 export interface Connectable extends HTMLElement {
     connectedCallback?(): void
     disconnectedCallback?(): void
 
     _mapStateToProps?: MapStateToProps
+
+    /* @deprecated Consider using _mapEventsToActions instead */
     _mapDispatchToEvents?: MapDispatchToEvents
+
+    _mapEventsToActions?: MapEventsToActions
 }
 
 export type Constructor<T> = new (...args: any[]) => T
@@ -23,12 +27,12 @@ export function connect<T extends Constructor<Connectable>>(
     superclass: T
 ) {
     class connected extends superclass {
-        private unsubscribe: Unsubscribe;
-        private dispatchMap: any
+        private _unsubscribe: Unsubscribe;
+        private _dispatchMap: DispatchMap
 
         constructor(...args: any[]) {
-            super(args)
-            this.onReduxStateChange_ = this.onReduxStateChange_.bind(this)
+            super(...args)
+            this._onReduxStateChange = this._onReduxStateChange.bind(this)
         }
 
         connectedCallback() {
@@ -36,35 +40,51 @@ export function connect<T extends Constructor<Connectable>>(
                 super.connectedCallback()
             }
 
-            if (this._mapDispatchToEvents) {
-                this.dispatchMap = this._mapDispatchToEvents(store.dispatch)
-                Object.keys(this.dispatchMap).forEach(key => {
-                    const fn = this.dispatchMap[key]
-                    this.dispatchMap[key] = (event: Event) => {
-                        event.stopImmediatePropagation()
-                        fn(event)
-                    }
-                })
-                for (let key in this.dispatchMap) {
-                    this.addEventListener(key, this.dispatchMap[key], false)
+            if (!this._dispatchMap) {
+                if (this._mapEventsToActions) {
+                    const eventMap = this._mapEventsToActions()
+                    this._dispatchMap = Object.keys(eventMap).reduce((map, key) => {
+                        const fn = eventMap[key]
+                        map[key] = (event: Event) => {
+                            event.stopImmediatePropagation()
+                            const action = fn(event)
+                            store.dispatch(action)
+                        }
+                        return map
+                    }, <DispatchMap>{})
+                } else if (this._mapDispatchToEvents) {
+                    this._dispatchMap = this._mapDispatchToEvents(store.dispatch)
+                    Object.keys(this._dispatchMap).forEach(key => {
+                        const fn = this._dispatchMap[key]
+                        this._dispatchMap[key] = (event: Event) => {
+                            event.stopImmediatePropagation()
+                            fn(event)
+                        }
+                    })
+                }
+            }
+
+            if (this._dispatchMap) {
+                for (let key in this._dispatchMap) {
+                    this.addEventListener(key, this._dispatchMap[key], false)
                 }
             }
 
             if (this._mapStateToProps) {
-                this.unsubscribe = store.subscribe(this.onReduxStateChange_)
-                this.onReduxStateChange_()
+                this._unsubscribe = store.subscribe(this._onReduxStateChange)
+                this._onReduxStateChange()
             }
         }
 
         disconnectedCallback() {
-            if (this.unsubscribe) {
-                this.unsubscribe()
-                this.unsubscribe = null
+            if (this._unsubscribe) {
+                this._unsubscribe()
+                this._unsubscribe = null
             }
 
-            if (this.dispatchMap) {
-                for (let key in this.dispatchMap) {
-                    this.removeEventListener(key, this.dispatchMap[key], false)
+            if (this._dispatchMap) {
+                for (let key in this._dispatchMap) {
+                    this.removeEventListener(key, this._dispatchMap[key], false)
                 }
             }
 
@@ -73,7 +93,7 @@ export function connect<T extends Constructor<Connectable>>(
             }
         }
 
-        private onReduxStateChange_() {
+        private _onReduxStateChange() {
             const state = store.getState()
             Object.assign(this, this._mapStateToProps(state))
         }
