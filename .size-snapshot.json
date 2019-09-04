@@ -1,0 +1,7 @@
+{
+  "dist/connect.min.js": {
+    "bundled": 2889,
+    "minified": 990,
+    "gzipped": 446
+  }
+}
