@@ -67,7 +67,9 @@ export class MyConnectedElement extends connect(store, MyElement) {
   // this can be direct or via reselect memoized functions
   mapState(state: State) {
     return {
-      name: state.name,   // or NameSelector(state)
+      name: state.name,   
+      // or using a reselecy selector:
+      // name: NameSelector(state),
     }
   })
 
@@ -100,4 +102,9 @@ customElements.define(MyElement.is, MyElementConnected)
 
 Of course if you prefer, you can include the `connect` mixin with the mapping functions
 directly in the element - having the split is entirely optional and down to personal
-style and app architecture.
+style and application architecture.
+
+I prefer to have a separate project for an apps elements which are pure UI components
+that have state set by properties and communicate with events. The app then consumes 
+these building-block elements and uses connected views to connect the UI to the Redux
+state store.
