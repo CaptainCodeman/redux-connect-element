@@ -44,7 +44,9 @@ export function connect<T extends Constructor<Connectable>>(
 
     constructor(...args: any[]) {
       super(...args)
-      this[createDispatchMap]()
+      if (hasConnectEvents(this)) {
+        this[createDispatchMap]()
+      }
     }
 
     connectedCallback() {
