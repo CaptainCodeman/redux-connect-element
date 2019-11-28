@@ -6,16 +6,8 @@ export interface ConnectProps {
   mapState?(state: any): { [key: string]: any }
 }
 
-function hasConnectProps(inst: ConnectProps): inst is ConnectProps {
-  return (inst as ConnectProps).mapState !== undefined;
-}
-
 export interface ConnectEvents {
   mapEvents?(): { [key: string]: (event: Event) => Action }
-}
-
-function hasConnectEvents(inst: ConnectEvents): inst is ConnectEvents {
-  return (inst as ConnectEvents).mapEvents !== undefined;
 }
 
 export interface Connectable extends HTMLElement, ConnectProps, ConnectEvents {
@@ -32,7 +24,7 @@ const addEventListeners: unique symbol = Symbol()
 const removeEventListeners: unique symbol = Symbol()
 const addStateSubscription: unique symbol = Symbol()
 const removeStateSubscription: unique symbol = Symbol()
-const onReduxStateChange: unique symbol = Symbol()
+const onStateChange: unique symbol = Symbol()
 
 export function connect<T extends Constructor<Connectable>>(
   store: Store,
@@ -44,9 +36,7 @@ export function connect<T extends Constructor<Connectable>>(
 
     constructor(...args: any[]) {
       super(...args)
-      if (hasConnectEvents(this)) {
-        this[createDispatchMap]()
-      }
+      this[createDispatchMap]()
     }
 
     connectedCallback() {
@@ -54,23 +44,13 @@ export function connect<T extends Constructor<Connectable>>(
         super.connectedCallback()
       }
 
-      if (hasConnectEvents(this)) {
-        this[addEventListeners]()
-      }
-
-      if (hasConnectProps(this)) {
-        this[addStateSubscription]()
-      }
+      this[addEventListeners]()
+      this[addStateSubscription]()
     }
 
     disconnectedCallback() {
-      if (hasConnectProps(this)) {
-        this[removeStateSubscription]()
-      }
-
-      if (hasConnectEvents(this)) {
-        this[removeEventListeners]()
-      }
+      this[removeStateSubscription]()
+      this[removeEventListeners]()
 
       if (super.disconnectedCallback) {
         super.disconnectedCallback()
@@ -78,42 +58,43 @@ export function connect<T extends Constructor<Connectable>>(
     }
 
     private [createDispatchMap]() {
-      const eventMap = this.mapEvents()
-      this[dispatchMap] = Object.keys(eventMap).reduce((map, key) => {
-        const fn = eventMap[key]
-        map[key] = function (event: Event) {
-          // TODO: make configurable with extra options param
-          event.stopImmediatePropagation()
-          store.dispatch(fn(event))
-        }.bind(this)
-        return map
-      }, <DispatchMap>{})
+      this[dispatchMap] = <DispatchMap>{}
+      if (this.mapEvents) {
+        const eventMap = this.mapEvents()
+        for (const key in eventMap) {
+          const fn = eventMap[key]
+          this[dispatchMap][key] = function (event: Event) {
+            event.stopImmediatePropagation()
+            store.dispatch(fn(event))
+          }.bind(this)
+        }
+      }
     }
 
     private [addEventListeners]() {
-      for (let key in this[dispatchMap]) {
+      for (const key in this[dispatchMap]) {
         this.addEventListener(key, this[dispatchMap][key], false)
       }
     }
 
     private [removeEventListeners]() {
-      for (let key in this[dispatchMap]) {
+      for (const key in this[dispatchMap]) {
         this.removeEventListener(key, this[dispatchMap][key], false)
       }
     }
 
     private [addStateSubscription]() {
-      this[unsubscribe] = store.subscribe(this[onReduxStateChange].bind(this))
-      this[onReduxStateChange]()
+      this[unsubscribe] = store.subscribe(this[onStateChange].bind(this))
+      this[onStateChange]()
     }
 
     private [removeStateSubscription]() {
-      this[unsubscribe]()
+      this[unsubscribe] && this[unsubscribe]()
       this[unsubscribe] = null
     }
 
-    private [onReduxStateChange]() {
-      Object.assign(this, this.mapState(store.getState()))
+    private [onStateChange]() {
+      this.mapState && Object.assign(this, this.mapState(store.getState()))
     }
   }
 

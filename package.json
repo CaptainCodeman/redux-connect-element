@@ -1,6 +1,6 @@
 {
   "name": "@captaincodeman/redux-connect-element",
-  "version": "2.0.0-beta.1",
+  "version": "2.0.0-beta.2",
   "description": "Redux HTMLElement Connector",
   "main": "connect.cjs",
   "browser": "connect.min.js",

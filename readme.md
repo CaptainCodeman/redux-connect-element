@@ -3,7 +3,7 @@
 Connect Redux to vanilla HTMLElement (or LitElement) instances, based on this
 [gist by Kevin Schaaf](https://gist.github.com/kevinpschaaf/995c9d1fd0f58fe021b174c4238b38c3).
 
-Typescript friendly and Tiny (minified and gzipped): 446 Bytes
+Typescript friendly and Tiny (minified and gzipped): 401 Bytes
 
 ## Installation
 
@@ -77,12 +77,10 @@ export class MyConnectedElement extends connect(store, MyElement) {
   // this can again be direct as shown below or using action creators
   mapEvents() {
     return {
-      'name-changed': (e: NameChangedEvent) => {
+      'name-changed': (e: NameChangedEvent) => ({
         type: 'CHANGE_NAME', 
-        payload: { 
-          name: e.detail.name
-        }
-      }
+        payload: { name: e.detail.name }
+      })
       // or, using an action creator:
       // 'name-changed': (e: NameChangedEvent) => changeNameAction(e.detail.name)
     }

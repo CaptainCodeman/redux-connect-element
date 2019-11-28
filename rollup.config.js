@@ -7,19 +7,19 @@ import { terser } from 'rollup-plugin-terser';
 import { sizeSnapshot } from "rollup-plugin-size-snapshot";
 
 export default [{
-    input: 'src/connect.ts',
-    output: {
-      file: 'dist/' + pkg.main,
-      format: 'cjs',
-      name: 'connect',
-    },
-    plugins: [
-      resolve(),
-      typescript({
-        typescript: require('typescript'),
-      }),
-    ],
-  }, {
+  input: 'src/connect.ts',
+  output: {
+    file: 'dist/' + pkg.main,
+    format: 'cjs',
+    name: 'connect',
+  },
+  plugins: [
+    resolve(),
+    typescript({
+      typescript: require('typescript'),
+    }),
+  ],
+}, {
   input: 'src/connect.ts',
   output: {
     file: 'dist/' + pkg.browser,
