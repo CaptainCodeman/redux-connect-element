@@ -106,3 +106,70 @@ I prefer to have a separate project for an apps elements which are pure UI compo
 that have state set by properties and communicate with events. The app then consumes 
 these building-block elements and uses connected views to connect the UI to the Redux
 state store.
+
+## Upgrading
+
+If upgrading from v1, note that the mapping functions have been renamed and simplified.
+
+### State Mapping
+
+Instead of:
+
+```js
+_mapStateToProps = (state: State) => ({
+  name: NameSelector(state)
+})
+```
+
+Use:
+
+```js
+mapState(state: State) {
+  return {
+    name: NameSelector(state),
+  }
+})
+```
+
+or 
+
+```js
+mapState = (state: State) => ({
+  name: NameSelector(state),
+})
+```
+
+### Event Mapping
+
+Instead of:
+```js
+_mapEventsToActions = () => ({
+  'name-changed': (e: NameChangedEvent) => changeNameAction(e.detail.name)
+})
+```
+
+Or
+
+```js
+_mapDispatchToEvents = (dispatch: Dispatch) => ({
+  'name-changed': (e: NameChangedEvent) => dispatch(changeNameAction(e.detail.name))
+})
+```
+
+Use:
+
+```js
+mapEvents() {
+  return {
+    'name-changed': (e: NameChangedEvent) => changeNameAction(e.detail.name)
+  }
+}
+```
+
+Or
+
+```js
+mapEvents = () => ({
+  'name-changed': (e: NameChangedEvent) => changeNameAction(e.detail.name)
+})
+```
