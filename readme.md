@@ -3,7 +3,7 @@
 Connect Redux to vanilla HTMLElement (or LitElement) instances, based on this
 [gist by Kevin Schaaf](https://gist.github.com/kevinpschaaf/995c9d1fd0f58fe021b174c4238b38c3).
 
-Typescript friendly and Tiny (minified and gzipped): 401 Bytes
+Typescript friendly and Tiny: 371 bytes (minified and gzipped)
 
 ## Installation
 

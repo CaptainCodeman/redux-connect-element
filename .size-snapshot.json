@@ -1,21 +1,7 @@
 {
   "dist/connect.min.js": {
-    "bundled": 2484,
-    "minified": 903,
-    "gzipped": 401
-  },
-  "dist/connect.js": {
-    "bundled": 2264,
-    "minified": 1309,
-    "gzipped": 444,
-    "treeshaked": {
-      "rollup": {
-        "code": 0,
-        "import_statements": 0
-      },
-      "webpack": {
-        "code": 1023
-      }
-    }
+    "bundled": 2317,
+    "minified": 841,
+    "gzipped": 371
   }
 }

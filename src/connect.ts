@@ -62,11 +62,7 @@ export function connect<T extends Constructor<Connectable>>(
       if (this.mapEvents) {
         const eventMap = this.mapEvents()
         for (const key in eventMap) {
-          const fn = eventMap[key]
-          this[dispatchMap][key] = function (event: Event) {
-            event.stopImmediatePropagation()
-            store.dispatch(fn(event))
-          }.bind(this)
+          this[dispatchMap][key] = (event: Event) => store.dispatch(eventMap[key](event))
         }
       }
     }
