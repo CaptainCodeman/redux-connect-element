@@ -1,18 +1,20 @@
 {
   "name": "@captaincodeman/redux-connect-element",
-  "version": "1.1.0",
+  "version": "2.0.0",
   "description": "Redux HTMLElement Connector",
-  "main": "connect.cjs.js",
+  "main": "connect.cjs",
   "browser": "connect.min.js",
-  "esnext": "connect.js",
+  "module": "connect.js",
   "types": "connect.d.ts",
-  "unpkg": "hydra.min.js",
+  "type": "module",
+  "unpkg": "connect.min.js",
   "scripts": {
     "build": "npm run build:es && npm run build:js",
     "build:es": "tsc --module es2015 --declaration",
     "build:js": "rollup -c",
     "dev": "rollup -c -w",
-    "mypublish": "npm run build && cp readme.md package.json dist && npm publish dist --tag latest --access=public"
+    "mypublish:pre": "npm run build && cp readme.md package.json dist",
+    "mypublish": "npm run mypublish:pre && npm publish dist --tag latest --access=public"
   },
   "author": "simon@captaincodeman.com",
   "license": "ISC",
@@ -24,12 +26,13 @@
     "redux": "^4.0.0"
   },
   "devDependencies": {
-    "rollup": "^1.15.0",
-    "rollup-plugin-node-resolve": "^5.0.1",
-    "rollup-plugin-terser": "^5.0.0",
+    "rollup": "^1.27.14",
+    "rollup-plugin-node-resolve": "^5.2.0",
+    "rollup-plugin-size-snapshot": "^0.10.0",
+    "rollup-plugin-terser": "^5.1.3",
     "rollup-plugin-typescript": "^1.0.1",
     "tslib": "^1.10.0",
-    "typescript": "^3.5.1"
+    "typescript": "^3.7.4"
   },
   "dependencies": {
     "redux": "^4.0.0"

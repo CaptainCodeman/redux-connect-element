@@ -3,7 +3,7 @@
 Connect Redux to vanilla HTMLElement (or LitElement) instances, based on this
 [gist by Kevin Schaaf](https://gist.github.com/kevinpschaaf/995c9d1fd0f58fe021b174c4238b38c3).
 
-Typescript friendly.
+Typescript friendly and Tiny: 371 bytes (minified and gzipped)
 
 ## Installation
 
@@ -13,28 +13,36 @@ Typescript friendly.
 
 Your WebComponents can be kept 'pure' with no reference to Redux which helps to
 make them easily testable and reusable. They should accept properties to set their
-state and raise events to communicate state changes. A great library for writing
-elements is [LitElement](https://github.com/Polymer/lit-element):
+state and raise events to communicate their internal state changes.
+
+A great library for writing lightweight custom elements is
+[lit-element](https://github.com/Polymer/lit-element). Here's a very simple example:
 
 ```ts
-import { LitElement, property, html } from '@polymer/lit-element'
+import { LitElement, property, html } from 'lit-element'
 
 export class MyElement extends LitElement {
-    static get is() { return 'my-element' }
+  static get is() { return 'my-element' }
 
-    @property({ type: String })
-    public name: string = 'unknown'
+  @property({ type: String })
+  public name: string = 'unknown'
 
-    onChange = (e) => this.dispatchEvent(
-        new CustomEvent('name-changed', { detail: e.target.value })
+  onChange(e: Event) {
+    this.dispatchEvent(
+      new CustomEvent('name-changed', { 
+        bubbles: true,
+        composed: trye,
+        detail: e.target.value,
+      })
     )
+  }
 
-    render() {
-        return html`
-<p>Hello ${this.name}</p>
-<input type="text" .value=${this.name} @input=${this.onChange}>
-`
-    }
+  render() {
+    return html`
+      <p>Hello ${this.name}</p>
+      <input type="text" .value=${this.name} @input=${this.onChange}>
+    `
+  }
 }
 ```
 
@@ -43,9 +51,9 @@ want with no need to setup external dependencies (such as Redux).
 
 The connection to Redux can now be defined separately by subclassing the element
 and providing mapping functions. These map the Redux State to the element properties
-(`_mapStateToProps`) and the events to Redux Actions (`_mapEventsToActions`).
+(`mapState`) and the events to Redux Actions (`mapEvents`).
 
-The `_mapStateToProps` method can map properties directly or you can make use of the
+The `mapState` method can map properties directly or you can make use of the
 [Reselect](https://github.com/reduxjs/reselect) library to memoize more complex
 projections.
 
@@ -54,19 +62,29 @@ import { connect } from '@captaincodeman/redux-connect-element'
 import { store, State } from './store'
 import { MyElement } from './my-element'
 
-export class MyElementConnected extends connect(store, MyElement) {
-    _mapStateToProps = (state: State) => ({
-        name: state.name // or NameSelector(state)
-    })
+export class MyConnectedElement extends connect(store, MyElement) {
+  // mapState provides the mapping of state to element properties
+  // this can be direct or via reselect memoized functions
+  mapState(state: State) {
+    return {
+      name: state.name,   
+      // or using a reselecy selector:
+      // name: NameSelector(state),
+    }
+  })
 
-    _mapEventsToActions = () => ({
-        'name-changed': (e: NameChangedEvent) => {
-            type: 'CHANGE_NAME', 
-            payload: { 
-                name: e.detail.Name
-            }
-        }
-    })
+  // mapEvents provides the mapping of DOM events to redux actions
+  // this can again be direct as shown below or using action creators
+  mapEvents() {
+    return {
+      'name-changed': (e: NameChangedEvent) => ({
+        type: 'CHANGE_NAME', 
+        payload: { name: e.detail.name }
+      })
+      // or, using an action creator:
+      // 'name-changed': (e: NameChangedEvent) => changeNameAction(e.detail.name)
+    }
+  }
 }
 ```
 
@@ -75,38 +93,83 @@ with the Redux store and automatically re-rendered when they change. Mapped even
 are automatically dispatched to the store to mutate the state within Redux.
 
 ```ts
-import { MyElementConnected as MyElement } from './my-element-connected'
+import { MyElementConnected } from './my-element-connected'
 
-customElements.define(MyElement.is, MyElement)
+customElements.define(MyElement.is, MyElementConnected)
 ```
 
 Of course if you prefer, you can include the `connect` mixin with the mapping functions
-directly in the element  (having the split is entirely optional).
+directly in the element - having the split is entirely optional and down to personal
+style and application architecture.
 
-NOTE: `_mapEventsToActions` superceeds `_mapDispatchToEvents` which maps events _and
-dispatches_ the actions. The example above could be written as shown below but using
-the `_mapEventsToActions` is simpler as it removes the responsibility of dispatching
-the action to the store and the need to import the `Dispatch` method from Redux (if
-using Typescript). `_mapDispatchToEvents` may be removed in future.
+I prefer to have a separate project for an apps elements which are pure UI components
+that have state set by properties and communicate with events. The app then consumes 
+these building-block elements and uses connected views to connect the UI to the Redux
+state store.
 
-```ts
-import { Dispatch } from 'redux'
-import { connect } from '@captaincodeman/redux-connect-element'
-import { store, State } from './store'
-import { MyElement } from './my-element'
+## Upgrading
 
-export class MyElementConnected extends connect(store, MyElement) {
-    _mapStateToProps = (state: State) => ({
-        name: state.name // or NameSelector(state)
-    })
+If upgrading from v1, note that the mapping functions have been renamed and simplified.
 
-    _mapDispatchToEvents = (dispatch: Dispatch) => ({
-        'name-changed': (e: NameChangedEvent) => dispatch({
-            type: 'CHANGE_NAME', 
-            payload: { 
-                name: e.detail.name
-            }
-        })
-    })
+### State Mapping
+
+Instead of:
+
+```js
+_mapStateToProps = (state: State) => ({
+  name: NameSelector(state)
+})
+```
+
+Use:
+
+```js
+mapState(state: State) {
+  return {
+    name: NameSelector(state),
+  }
+})
+```
+
+or 
+
+```js
+mapState = (state: State) => ({
+  name: NameSelector(state),
+})
+```
+
+### Event Mapping
+
+Instead of:
+```js
+_mapEventsToActions = () => ({
+  'name-changed': (e: NameChangedEvent) => changeNameAction(e.detail.name)
+})
+```
+
+Or
+
+```js
+_mapDispatchToEvents = (dispatch: Dispatch) => ({
+  'name-changed': (e: NameChangedEvent) => dispatch(changeNameAction(e.detail.name))
+})
+```
+
+Use:
+
+```js
+mapEvents() {
+  return {
+    'name-changed': (e: NameChangedEvent) => changeNameAction(e.detail.name)
+  }
 }
+```
+
+Or
+
+```js
+mapEvents = () => ({
+  'name-changed': (e: NameChangedEvent) => changeNameAction(e.detail.name)
+})
 ```
