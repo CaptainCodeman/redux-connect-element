@@ -1,13 +1,13 @@
 {
   "name": "@captaincodeman/redux-connect-element",
-  "version": "2.0.0-rc.1",
+  "version": "2.0.0",
   "description": "Redux HTMLElement Connector",
   "main": "connect.cjs",
   "browser": "connect.min.js",
   "module": "connect.js",
   "types": "connect.d.ts",
   "type": "module",
-  "unpkg": "hydra.min.js",
+  "unpkg": "connect.min.js",
   "scripts": {
     "build": "npm run build:es && npm run build:js",
     "build:es": "tsc --module es2015 --declaration",
@@ -26,13 +26,13 @@
     "redux": "^4.0.0"
   },
   "devDependencies": {
-    "rollup": "^1.20.0",
+    "rollup": "^1.27.14",
     "rollup-plugin-node-resolve": "^5.2.0",
     "rollup-plugin-size-snapshot": "^0.10.0",
-    "rollup-plugin-terser": "^5.1.0",
+    "rollup-plugin-terser": "^5.1.3",
     "rollup-plugin-typescript": "^1.0.1",
     "tslib": "^1.10.0",
-    "typescript": "^3.5.3"
+    "typescript": "^3.7.4"
   },
   "dependencies": {
     "redux": "^4.0.0"
